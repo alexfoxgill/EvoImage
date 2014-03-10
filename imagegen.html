@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Imagegen</title>
+	<style>
+		.hoverclass {
+			width: 500px;
+			height: 500px;
+			border: 1px dashed grey;
+		}
+
+		.polygon {
+			-webkit-transition: -webkit-transform 5s cubic-bezier(0.23, 1, 0.32, 1);
+			-webkit-transform: scale(1) rotate(180deg) translate(0, 0);
+			-webkit-transform-origin: 50% 50%;
+		}
+
+		.hoverclass:hover .polygon {
+			-webkit-transform: rotate(0deg);
+		}
+	</style>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.10/angular.min.js"></script>
+
+	<script>
+	function getRandom(max) {
+	    return Math.floor(Math.random() * (max + 1));
+	}
+
+	angular.module('imagegen', [])
+		.factory('randomPolygon', function() {
+			return function(w, h) {
+				function getPoint() { return [getRandom(w), getRandom(h)]; }
+				var n = getRandom(3) + 3;
+				var points = []
+				for (var i = 0; i < n; i++) {
+					points.push(getPoint());
+				};
+				return {
+					points: points,
+					color: [getRandom(255), getRandom(255), getRandom(255), Math.random()]
+				}
+			}
+		})
+		.controller('SvgController', function($scope, randomPolygon) {
+			$scope.polygons = [];
+			for (var i = 0; i < 50; i++) {
+				$scope.polygons.push(randomPolygon(500,500))
+			}
+		})
+		.filter('rgba', function() {
+			return function(c) {
+				return 'rgba(' + [c].join(',') + ')';
+			}
+		})
+		.filter('path', function() {
+			return function(points) {
+				var path = [];
+				points.forEach(function(p) { path.push(p.join(',')); });
+				return path.join(' ');
+			}
+		});
+
+	</script>
+</head>
+<body ng-app="imagegen">
+	<svg ng-controller="SvgController" class="hoverclass" xmlns="http://www.w3.org/2000/svg" version="1.1">
+		<polygon ng-repeat="poly in polygons" class="polygon" ng-attr-points="{{poly.points | path}}" fill="{{poly.color | rgba}}" />
+	</svg>
+</body>
+</html>
